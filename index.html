@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>ESCG SafetyWare!</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/distap.min.css
+
+<style>
+
+body{
+    background:#ffe44d;
+    font-family:Comic Sans MS, sans-serif;
+    overflow:hidden;
+}
+
+.title{
+    font-size:3rem;
+    font-weight:900;
+}
+
+#gameArea{
+    position:relative;
+    height:550px;
+    background:white;
+    border:8px solid black;
+    border-radius:25px;
+    overflow:hidden;
+}
+
+.object{
+    position:absolute;
+    cursor:pointer;
+    user-select:none;
+}
+
+.command{
+    font-size:2rem;
+    font-weight:bold;
+    color:red;
+}
+
+.bigemoji{
+    font-size:80px;
+}
+
+</style>
+</head>
+<body>
+
+<div class="container text-center mt-3">
+
+<h1 class="title">
+🚨 ESCG SAFETYWARE 🚨
+</h1>
+
+<div class="row mb-2">
+
+<div class="col">
+<h3>Score: <span id="score">0</span></h3>
+</div>
+
+<div class="col">
+<h3>Lives: <span id="lives">3</span></h3>
+</div>
+
+<div class="col">
+<h3>Time: <span id="timer">15</span></h3>
+</div>
+
+</div>
+
+<div id="command" class="command mb-2">
+GET READY!
+</div>
+
+<div id="gameArea"></div>
+
+</div>
+
+<script>
+
+const gameArea = document.getElementById("gameArea");
+const command = document.getElementById("command");
+
+const scoreDisplay = document.getElementById("score");
+const timerDisplay = document.getElementById("timer");
+const livesDisplay = document.getElementById("lives");
+
+let score = 0;
+let lives = 3;
+let timer;
+let timeLeft = 15;
+
+let gameLevels = {};
+
+const funnyCommands = [
+"QUICK!",
+"MOVE IT!",
+"SAFETY!",
+"PANIC!",
+"OH NO!",
+"HURRY!",
+"FIX IT!",
+"DON'T DIE!",
+"GO GO GO!",
+"FASTER!"
+];
+
+const games = [
+
+{
+name:"extinguisher",
+func:fireExtinguisher
+},
+
+{
+name:"banana",
+func:bananaHazard
+},
+
+{
+name:"ppe",
+func:wearPPE
+},
+
+{
+name:"exit",
+func:clearExit
+},
+
+{
+name:"drill",
+func:fireDrill
+},
+
+{
+name:"cables",
+func:trailingCable
+},
+
+{
+name:"tea",
+func:saveTea
+},
+
+{
+name:"duck",
+func:mysteryDuck
+}
+
+];
+
+games.forEach(g=>{
+gameLevels[g.name]=1;
+});
+
+let currentGameName = "";
+
+function clearArea(){
+gameArea.innerHTML="";
+}
+
+function randomPosition(max){
+return Math.floor(Math.random()*max);
+}
+
+function randomGame(){
+
+return games[
+Math.floor(
+Math.random()*games.length
+)
+];
+
+}
+
+function startGame(){
+
+clearArea();
+
+command.innerText=
+funnyCommands[
+Math.floor(
+Math.random()*funnyCommands.length
+)
+];
+
+const game = randomGame();
+
+currentGameName = game.name;
+
+const level =
+gameLevels[currentGameName];
+
+timeLeft =
+Math.max(
+3,
+15-(level-1)
+);
+
+timerDisplay.textContent=
+timeLeft;
+
+clearInterval(timer);
+
+timer=setInterval(()=>{
+
+timeLeft--;
+
+timerDisplay.textContent=
+timeLeft;
+
+if(timeLeft<=0){
+
+loseLife();
+
+}
+
+},1000);
+
+setTimeout(()=>{
+game.func(level);
+},500);
+
+}
+
+function winRound(){
+
+clearInterval(timer);
+
+score++;
+
+scoreDisplay.textContent=
+score;
+
+gameLevels[currentGameName]++;
+
+command.textContent=
+"NICE!";
+
+setTimeout(()=>{
+startGame();
+},800);
+
+}
+
+function loseLife(){
+
+clearInterval(timer);
+
+lives--;
+
+livesDisplay.textContent=
+lives;
+
+if(lives<=0){
+
+gameOver();
+return;
+}
+
+command.textContent=
+"MISS!";
+
+setTimeout(()=>{
+startGame();
+},1000);
+
+}
+
+function gameOver(){
+
+let best =
+localStorage.getItem(
+"safetywareHighscore"
+) || 0;
+
+if(score > best){
+
+best = score;
+
+localStorage.setItem(
+"safetywareHighscore",
+score
+);
+
+}
+
+gameArea.innerHTML = `
+
+<div class="mt-5">
+
+<h1>GAME OVER</h1>
+
+<h2>Score: ${score}</h2>
+
+<h3>Best: ${best}</h3>
+
+<button
+class="btn btn-success btn-lg"
+onclick="restartGame()">
+Play Again
+</button>
+
+</div>
+
+`;
+
+}
+
+function restartGame(){
+
+score=0;
+lives=3;
+
+scoreDisplay.textContent=0;
+livesDisplay.textContent=3;
+
+games.forEach(g=>{
+gameLevels[g.name]=1;
+});
+
+startGame();
+
+}
+
+/* GAME 1 */
+
+function fireExtinguisher(level){
+
+clearArea();
+
+command.textContent=
+"GRAB THE EXTINGUISHER!";
+
+const junkCount = 3+level;
+
+spawn("🧯", true);
+
+const junk=[
+"🍕","💻","📚","☕","🎒","🍩"
+];
+
+for(let i=0;i<junkCount;i++){
+
+spawn(
+junk[Math.floor(Math.random()*junk.length)],
+false
+);
+
+}
+
+}
+
+/* GAME 2 */
+
+function bananaHazard(level){
+
+clearArea();
+
+command.textContent=
+"REMOVE THE HAZARD!";
+
+const hazards =
+1+level;
+
+for(let i=0;i<hazards;i++){
+
+spawn("🍌",true);
+
+}
+
+for(let i=0;i<5+level;i++){
+
+spawn("🧁",false);
+
+}
+
+}
+
+/* GAME 3 */
+
+function wearPPE(level){
+
+clearArea();
+
+command.textContent=
+"PUT ON PPE!";
+
+const buttonCount =
+2+level;
+
+for(let i=0;i<buttonCount;i++){
+
+const btn =
+document.createElement("button");
+
+btn.className=
+"btn btn-lg object";
+
+btn.style.left=
+randomPosition(700)+"px";
+
+btn.style.top=
+randomPosition(350)+"px";
+
+btn.innerText =
+i===0
+? "🦺"
+: "🌭";
+
+btn.onclick=()=>{
+
+if(i===0){
+winRound();
+}
+
+};
+
+gameArea.appendChild(btn);
+
+}
+
+}
+
+/* GAME 4 */
+
+function clearExit(level){
+
+clearArea();
+
+command.textContent=
+"CLEAR THE FIRE EXIT!";
+
+const door=
+document.createElement("div");
+
+door.className=
+"object bigemoji";
+
+door.innerText="🚪";
+
+door.style.left="350px";
+door.style.top="80px";
+
+gameArea.appendChild(door);
+
+const boxes =
+3+level;
+
+for(let i=0;i<boxes;i++){
+
+const box=
+document.createElement("div");
+
+box.className=
+"object bigemoji";
+
+box.innerText="📦";
+
+box.style.left=
+200+Math.random()*250+"px";
+
+box.style.top=
+150+Math.random()*200+"px";
+
+box.onclick=()=>{
+
+box.remove();
+
+if(
+gameArea.querySelectorAll(
+".boxremaining"
+).length===0
+){
+winRound();
+}
+
+};
+
+box.classList.add(
+"boxremaining"
+);
+
+gameArea.appendChild(box);
+
+}
+
+}
+
+/* GAME 5 */
+
+function fireDrill(level){
+
+clearArea();
+
+command.textContent=
+"SMASH THE EXIT BUTTON!";
+
+let clicks =
+3+(level*2);
+
+const btn=
+document.createElement("button");
+
+btn.className=
+"btn btn-danger btn-lg";
+
+btn.style.marginTop=
+"200px";
+
+btn.innerText=
+"EXIT ("+clicks+")";
+
+btn.onclick=()=>{
+
+clicks--;
+
+btn.innerText=
+"EXIT ("+clicks+")";
+
+if(clicks<=0){
+
+winRound();
+
+}
+
+};
+
+gameArea.appendChild(btn);
+
+}
+
+/* GAME 6 */
+
+function trailingCable(level){
+
+clearArea();
+
+command.textContent=
+"REMOVE THE CABLES!";
+
+let needed=
+2+level;
+
+for(let i=0;i<needed;i++){
+
+const cable=
+document.createElement("div");
+
+cable.className=
+"object";
+
+cable.style.fontSize=
+"60px";
+
+cable.innerText=
+"🔌";
+
+cable.style.left=
+randomPosition(700)+"px";
+
+cable.style.top=
+randomPosition(350)+"px";
+
+cable.onclick=()=>{
+
+cable.remove();
+
+needed--;
+
+if(needed<=0){
+
+winRound();
+
+}
+
+};
+
+gameArea.appendChild(cable);
+
+}
+
+}
+
+/* GAME 7 */
+
+function saveTea(level){
+
+clearArea();
+
+command.textContent=
+"SAVE THE TEA!";
+
+const tea=
+document.createElement("div");
+
+tea.className=
+"object";
+
+tea.style.fontSize=
+"90px";
+
+tea.innerText="☕";
+
+tea.style.left=
+randomPosition(700)+"px";
+
+tea.style.top=
+randomPosition(350)+"px";
+
+tea.onclick=winRound;
+
+gameArea.appendChild(tea);
+
+for(let i=0;i<5+level;i++){
+
+const laptop=
+document.createElement("div");
+
+laptop.className=
+"object";
+
+laptop.style.fontSize=
+"60px";
+
+laptop.innerText=
+"💻";
+
+laptop.style.left=
+randomPosition(700)+"px";
+
+laptop.style.top=
+randomPosition(350)+"px";
+
+gameArea.appendChild(laptop);
+
+}
+
+}
+
+/* GAME 8 */
+
+function mysteryDuck(level){
+
+clearArea();
+
+command.textContent=
+"FIND THE DUCK!";
+
+const duck=
+document.createElement("div");
+
+duck.className=
+"object";
+
+duck.style.fontSize=
+(60+(level*5))+"px";
+
+duck.innerText=
+"🦆";
+
+duck.style.left=
+randomPosition(700)+"px";
+
+duck.style.top=
+randomPosition(350)+"px";
+
+duck.onclick=
+winRound;
+
+gameArea.appendChild(duck);
+
+}
+
+/* SPAWNER */
+
+function spawn(emoji, correct){
+
+const obj=
+document.createElement("div");
+
+obj.className=
+"object";
+
+obj.style.fontSize=
+"60px";
+
+obj.innerText=
+emoji;
+
+obj.style.left=
+randomPosition(700)+"px";
+
+obj.style.top=
+randomPosition(350)+"px";
+
+if(correct){
+
+obj.onclick=winRound;
+
+}
+
+gameArea.appendChild(obj);
+
+}
+
+startGame();
+
+</script>
+
+</body>
+</html>
